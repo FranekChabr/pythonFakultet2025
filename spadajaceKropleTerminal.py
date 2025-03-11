@@ -14,10 +14,9 @@ def create_drop(max_x):
 
 def update_drops(drops, max_y, max_x):
     """Aktualizuje pozycje kropli i generuje nowe."""
-    new_drops = [(x, y + speed, speed) for x, y, speed in drops if y + speed < max_y]
+    new_drops = [(x, min(y + speed, max_y - 2), speed) for x, y, speed in drops if y + speed < max_y - 1]
 
-    #  wiecej kropli bliet
-    for _ in range(random.randint(2, 5)):  # Dodaj od 2 do 5 kropli jednocześnie
+    for _ in range(random.randint(2, 5)):  # Zwiększenie częstotliwości deszczu
         new_drops.append(create_drop(max_x))
 
     return new_drops
@@ -26,9 +25,12 @@ def update_drops(drops, max_y, max_x):
 def draw_drops(stdscr, drops):
     """Rysuje krople na ekranie."""
     stdscr.clear()
+    max_y, max_x = stdscr.getmaxyx()
+
     for x, y, speed in drops:
-        if 0 <= y < curses.LINES and 0 <= x < curses.COLS:
+        if 0 <= y < max_y - 1 and 0 <= x < max_x - 1:  # 🔥 Kluczowe zabezpieczenie!
             stdscr.addch(y, x, DROP_SYMBOLS[speed])
+
     stdscr.refresh()
 
 
@@ -41,11 +43,12 @@ def main(stdscr):
     drops = []
 
     while True:
-        drops = update_drops(drops, curses.LINES, curses.COLS)
+        max_y, max_x = stdscr.getmaxyx()
+        drops = update_drops(drops, max_y, max_x)
         draw_drops(stdscr, drops)
         time.sleep(0.05)
 
-        if stdscr.getch() != -1:
+        if stdscr.getch() != -1:  # Przerwanie pętl po wciśnięciu klawisza
             break
 
 
